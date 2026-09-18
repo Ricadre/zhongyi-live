@@ -1,189 +1,17 @@
 {
   "ok": true,
   "year": 2026,
-  "updated_utc": "2026-09-18T08:52:54.804266+00:00",
-  "updated_shanghai": "2026-09-18T16:52:54.804266+08:00",
+  "updated_utc": "2026-09-18T17:10:21.777700+00:00",
+  "updated_shanghai": "2026-09-19T01:10:21.777700+08:00",
   "lookahead_days": 7,
   "total_matches": 360,
-  "checked_matches": 12,
-  "playable_matches": 3,
-  "live_matches": 2,
+  "checked_matches": 8,
+  "playable_matches": 0,
+  "live_matches": 0,
   "quality_labels": "official_advertised_not_measured",
   "source": "https://stats.qiumibao.com/shuju/public/index.php?_url=%2Fdata%2Findex&year=2026&league=%E4%B8%AD%E4%B9%99&league_id=355&type=%E8%B5%9B%E7%A8%8B&tab=%E8%B5%9B%E7%A8%8B",
   "warnings": [],
   "matches": [
-    {
-      "match_id": "2286842",
-      "match_status": "中场",
-      "source_status": "playable",
-      "sources": [
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_16726",
-          "quality_label": "超清1080P",
-          "short_label": "超清",
-          "quality_height": 1080,
-          "source_url": "http://freevip.client.com/2286842/rtmp%3A%2F%2Fspl.tiyucdn.com%2F2026%2F0917nfho17086",
-          "rtmp_url": "rtmp://spl.tiyucdn.com/2026/0917nfho17086",
-          "candidate_url": "https://spl.tiyucdn.com/2026/0917nfho17086.m3u8",
-          "status": "probe_failed",
-          "verified": false,
-          "schema_path": "video_live.section_info[0].data[0].url_list[1]",
-          "start_time": "1789717800",
-          "end_time": "1789729200",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286842_0917nfho17086.htm",
-          "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
-        },
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_16726",
-          "quality_label": "高清720P",
-          "short_label": "高清",
-          "quality_height": 720,
-          "source_url": "http://freevip.client.com/2286842/rtmp%3A%2F%2Fspl.tiyucdn.com%2F2026%2F0917nfho17086_30fps",
-          "rtmp_url": "rtmp://spl.tiyucdn.com/2026/0917nfho17086_30fps",
-          "candidate_url": "https://spl.tiyucdn.com/2026/0917nfho17086_30fps.m3u8",
-          "status": "playable",
-          "verified": true,
-          "schema_path": "video_live.section_info[0].data[0].url_list[0]",
-          "start_time": "1789717800",
-          "end_time": "1789729200",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286842_0917nfho17086.htm",
-          "checked_url": "https://spl.tiyucdn.com/2026/0917nfho17086_30fps.m3u8",
-          "segment_sample_bytes": 512
-        }
-      ],
-      "errors": []
-    },
-    {
-      "match_id": "2286843",
-      "match_status": "中场",
-      "source_status": "playable",
-      "sources": [
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_16727",
-          "quality_label": "超清1080P",
-          "short_label": "超清",
-          "quality_height": 1080,
-          "source_url": "http://freevip.client.com/2286843/rtmp%3A%2F%2Fspl.tiyucdn.com%2F2026%2F0917lcam28463",
-          "rtmp_url": "rtmp://spl.tiyucdn.com/2026/0917lcam28463",
-          "candidate_url": "https://spl.tiyucdn.com/2026/0917lcam28463.m3u8",
-          "status": "probe_failed",
-          "verified": false,
-          "schema_path": "video_live.section_info[0].data[0].url_list[1]",
-          "start_time": "1789717800",
-          "end_time": "1789729200",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286843_0917lcam28463.htm",
-          "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
-        },
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_16727",
-          "quality_label": "高清720P",
-          "short_label": "高清",
-          "quality_height": 720,
-          "source_url": "http://freevip.client.com/2286843/rtmp%3A%2F%2Fspl.tiyucdn.com%2F2026%2F0917lcam28463_30fps",
-          "rtmp_url": "rtmp://spl.tiyucdn.com/2026/0917lcam28463_30fps",
-          "candidate_url": "https://spl.tiyucdn.com/2026/0917lcam28463_30fps.m3u8",
-          "status": "playable",
-          "verified": true,
-          "schema_path": "video_live.section_info[0].data[0].url_list[0]",
-          "start_time": "1789717800",
-          "end_time": "1789729200",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286843_0917lcam28463.htm",
-          "checked_url": "https://spl.tiyucdn.com/2026/0917lcam28463_30fps.m3u8",
-          "segment_sample_bytes": 512
-        }
-      ],
-      "errors": []
-    },
-    {
-      "match_id": "2286896",
-      "match_status": "未开始",
-      "source_status": "playable",
-      "sources": [
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_16728",
-          "quality_label": "超清1080P",
-          "short_label": "超清",
-          "quality_height": 1080,
-          "source_url": "http://freevip.client.com/2286896/rtmp%3A%2F%2Fhslive.tiyucdn.com%2Fzbbleft%2F0917olpk17912",
-          "rtmp_url": "rtmp://hslive.tiyucdn.com/zbbleft/0917olpk17912",
-          "candidate_url": "https://hslive.tiyucdn.com/zbbleft/0917olpk17912.m3u8",
-          "status": "playable",
-          "verified": true,
-          "schema_path": "video_live.section_info[0].data[0].url_list[1]",
-          "start_time": "1789721400",
-          "end_time": "1789732800",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286896_0917olpk17912.htm",
-          "checked_url": "https://hslive.tiyucdn.com/zbbleft/0917olpk17912.m3u8",
-          "segment_sample_bytes": 512
-        },
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_16728",
-          "quality_label": "高清720P",
-          "short_label": "高清",
-          "quality_height": 720,
-          "source_url": "http://freevip.client.com/2286896/rtmp%3A%2F%2Fhslive.tiyucdn.com%2Fzbbleft%2F0917olpk17912_30fps",
-          "rtmp_url": "rtmp://hslive.tiyucdn.com/zbbleft/0917olpk17912_30fps",
-          "candidate_url": "https://hslive.tiyucdn.com/zbbleft/0917olpk17912_30fps.m3u8",
-          "status": "playable",
-          "verified": true,
-          "schema_path": "video_live.section_info[0].data[0].url_list[0]",
-          "start_time": "1789721400",
-          "end_time": "1789732800",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286896_0917olpk17912.htm",
-          "checked_url": "https://hslive.tiyucdn.com/zbbleft/0917olpk17912_30fps.m3u8",
-          "segment_sample_bytes": 512
-        }
-      ],
-      "errors": []
-    },
-    {
-      "match_id": "2286812",
-      "match_status": "未开始",
-      "source_status": "not_playable_yet",
-      "sources": [
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_16729",
-          "quality_label": "超清1080P",
-          "short_label": "超清",
-          "quality_height": 1080,
-          "source_url": "http://freevip.client.com/2286812/rtmp%3A%2F%2Fhslive.tiyucdn.com%2Fzbbleft%2F0917oayd68155",
-          "rtmp_url": "rtmp://hslive.tiyucdn.com/zbbleft/0917oayd68155",
-          "candidate_url": "https://hslive.tiyucdn.com/zbbleft/0917oayd68155.m3u8",
-          "status": "probe_failed",
-          "verified": false,
-          "schema_path": "video_live.section_info[0].data[0].url_list[1]",
-          "start_time": "1789730400",
-          "end_time": "1789741800",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286812_0917oayd68155.htm",
-          "error": "HTTP Error 404: Not Found"
-        },
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_16729",
-          "quality_label": "高清720P",
-          "short_label": "高清",
-          "quality_height": 720,
-          "source_url": "http://freevip.client.com/2286812/rtmp%3A%2F%2Fhslive.tiyucdn.com%2Fzbbleft%2F0917oayd68155_30fps",
-          "rtmp_url": "rtmp://hslive.tiyucdn.com/zbbleft/0917oayd68155_30fps",
-          "candidate_url": "https://hslive.tiyucdn.com/zbbleft/0917oayd68155_30fps.m3u8",
-          "status": "probe_failed",
-          "verified": false,
-          "schema_path": "video_live.section_info[0].data[0].url_list[0]",
-          "start_time": "1789730400",
-          "end_time": "1789741800",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286812_0917oayd68155.htm",
-          "error": "HTTP Error 404: Not Found"
-        }
-      ],
-      "errors": []
-    },
     {
       "match_id": "2286813",
       "match_status": "未开始",
@@ -288,7 +116,7 @@
           "start_time": "1789804200",
           "end_time": "1789815600",
           "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286845_0917hrwb63391.htm",
-          "error": "HTTP Error 404: Not Found"
+          "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
         },
         {
           "provider": "直播吧视频直播",
@@ -305,7 +133,7 @@
           "start_time": "1789804200",
           "end_time": "1789815600",
           "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286845_0917hrwb63391.htm",
-          "error": "HTTP Error 404: Not Found"
+          "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
         }
       ],
       "errors": []
@@ -330,7 +158,7 @@
           "start_time": "1789807800",
           "end_time": "1789819200",
           "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286814_0917jbxe61293.htm",
-          "error": "HTTP Error 404: Not Found"
+          "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
         },
         {
           "provider": "直播吧视频直播",
@@ -347,7 +175,7 @@
           "start_time": "1789807800",
           "end_time": "1789819200",
           "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286814_0917jbxe61293.htm",
-          "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
+          "error": "HTTP Error 404: Not Found"
         }
       ],
       "errors": []
@@ -456,7 +284,7 @@
           "start_time": "1789816800",
           "end_time": "1789828200",
           "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286898_0917mgwo92337.htm",
-          "error": "<urlopen error _ssl.c:993: The handshake operation timed out>"
+          "error": "HTTP Error 404: Not Found"
         },
         {
           "provider": "直播吧视频直播",
