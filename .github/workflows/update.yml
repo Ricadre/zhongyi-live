@@ -1,0 +1,64 @@
+name: Update Zhongyi subscription
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths-ignore: ['data/**', 'README.md']
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: zhongyi-pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - name: Set up Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Test parsers and update rules
+        run: python -m unittest discover -p 'test_*.py' -v
+      - name: Read official schedule and validate streams
+        run: python update.py --output site
+      - name: Configure Pages
+        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+      - name: Upload subscription and schedule
+        uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
+        with:
+          path: site
+      - name: Deploy
+        id: deployment
+        uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4
+      - name: Save one schedule snapshot per day
+        env:
+          TZ: Asia/Shanghai
+        run: |
+          mkdir -p data
+          today=$(date +%F)
+          previous=$(cat data/updated-date.txt 2>/dev/null || true)
+          if [ "$today" != "$previous" ]; then
+            cp site/schedule.json data/schedule.json
+            cp site/status.json data/status.json
+            date +%F > data/updated-date.txt
+            git config user.name 'github-actions[bot]'
+            git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+            git add data/
+            git commit -m "chore: refresh daily schedule snapshot"
+            git push origin HEAD:main
+          fi
