@@ -13,6 +13,7 @@ import html
 import json
 from pathlib import Path
 import re
+import ssl
 import sys
 import time
 from urllib.error import HTTPError, URLError
@@ -73,6 +74,7 @@ def fetch_json(url):
         try:
             return json.loads(fetch_bytes(url, 5_000_000).decode("utf-8-sig"))
         except HTTPError as exc:
+            exc.close()
             if attempt or exc.code not in {408, 429, 500, 502, 503, 504}:
                 raise
         except (URLError, TimeoutError, ConnectionError, json.JSONDecodeError):
@@ -146,6 +148,30 @@ def should_check(match, now, days=7):
             and -4 * 3600 <= delta <= days * 86400)
 
 
+def read_stream_with_retry(read, url, limit, **kwargs):
+    """Retry one transient transport failure, never access denial or bad media.
+
+    Each underlying fetch retains its 12-second timeout, original size limit,
+    TLS validation and redirect allowlist. Retry only the failed resource, not
+    an entire probe or every previously validated segment.
+    """
+    for attempt in range(2):
+        try:
+            return read(url, limit, **kwargs)
+        except HTTPError as exc:
+            exc.close()
+            retryable = exc.code in {408, 429} or 500 <= exc.code <= 599
+            if attempt or not retryable:
+                raise
+        except URLError as exc:
+            if attempt or isinstance(exc.reason, ssl.SSLCertVerificationError):
+                raise
+        except (TimeoutError, ConnectionError):
+            if attempt:
+                raise
+        time.sleep(0.4)
+
+
 def probe_hls(url, read=None, depth=0):
     """Check a bounded live manifest and the first segment; download no full media."""
     read = read or fetch_bytes
@@ -153,7 +179,7 @@ def probe_hls(url, read=None, depth=0):
         allow_url(url, STREAM_HOSTS)
         if depth > 2:
             raise UpdateError("manifest nesting limit")
-        raw = read(url, 131_072, hosts=STREAM_HOSTS)
+        raw = read_stream_with_retry(read, url, 131_072, hosts=STREAM_HOSTS)
         text = raw.decode("utf-8-sig")
         lines = [line.strip() for line in text.splitlines() if line.strip()]
         if not lines or lines[0] != "#EXTM3U":
@@ -180,7 +206,7 @@ def probe_hls(url, read=None, depth=0):
             raise UpdateError("manifest has no media segments")
         segment = urljoin(url, segments[0])
         allow_url(segment, STREAM_HOSTS)
-        data = read(segment, 512, hosts=STREAM_HOSTS, sample=True)
+        data = read_stream_with_retry(read, segment, 512, hosts=STREAM_HOSTS, sample=True)
         # MPEG-TS has a synchronization byte every 188 bytes. Accept an ID3
         # prefix only if two correctly spaced synchronization bytes are read.
         is_ts = any(data[i] == 0x47 and data[i + 188] == 0x47 for i in range(min(188, max(0, len(data) - 188))))
@@ -268,7 +294,7 @@ def render_index(matches, meta):
 <small>最近成功更新：{esc(meta["updated_shanghai"])}（北京时间）。订阅文件随任务更新，播放器需刷新订阅。<a href="status.json">运行状态</a> · <a href="schedule.json">完整赛程 JSON</a></small>
 <h2>全赛季赛程</h2><div class="table"><table><thead><tr><th>北京时间</th><th>轮次</th><th>对阵</th><th>比赛状态</th><th>已验证画质 / 直播源状态</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>
 <p>数据来自直播吧公开官方赛程与官方比赛直播入口，仅收录无需登录即可验证的公开流。比赛改期与新直播源将在后续成功更新时反映。</p></main>
-<script>async function copyUrl(file){{const url=new URL(file,location.href).href;try{{await navigator.clipboard.writeText(url);document.getElementById('copied').textContent='已复制：'+url}}catch(e){{document.getElementById('copied').textContent=url}}}}</script></html>'''
+<script>async function copyUrl(file){{const url=new URL(file,location.href).href;document.getElementById('copied').textContent=url;try{{await navigator.clipboard.writeText(url);document.getElementById('copied').textContent='已复制：'+url}}catch(e){{document.getElementById('copied').textContent=url}}}}</script></html>'''
 
 
 def build(year, now, get_json=fetch_json, probe=probe_hls, days=7):

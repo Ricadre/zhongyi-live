@@ -1,6 +1,9 @@
 from datetime import datetime, timezone
 import json
+import ssl
 import unittest
+from unittest.mock import patch
+from urllib.error import HTTPError, URLError
 
 import update
 
@@ -72,6 +75,69 @@ class UpdateTests(unittest.TestCase):
         def read(url, limit, **kwargs):
             return b"#EXTM3U\n#EXTINF:6,\none.ts\n" if url.endswith("m3u8") else b"access denied"
         self.assertFalse(update.probe_hls("https://spl.tiyucdn.com/2026/test.m3u8", read)["verified"])
+
+    @patch("update.time.sleep")
+    def test_handshake_and_segment_timeout_retry_only_failed_resource(self, sleep):
+        calls = []
+        attempts = {}
+        def read(url, limit, **kwargs):
+            calls.append((url, limit, kwargs))
+            attempts[url] = attempts.get(url, 0) + 1
+            if attempts[url] == 1:
+                if url.endswith(".m3u8"):
+                    raise URLError(TimeoutError("SSL handshake operation timed out"))
+                raise TimeoutError("segment read timed out")
+            if url.endswith(".m3u8"):
+                return b"#EXTM3U\n#EXTINF:6,\nfirst.ts\n"
+            return (b"\x47" + b"\0" * 187) * 2
+        result = update.probe_hls("https://spl.tiyucdn.com/2026/test.m3u8", read)
+        self.assertTrue(result["verified"])
+        self.assertEqual(len(calls), 4)
+        self.assertEqual(sleep.call_count, 2)
+        for _, limit, kwargs in calls[-2:]:
+            self.assertEqual(limit, 512)
+            self.assertTrue(kwargs["sample"])
+
+    @patch("update.time.sleep")
+    def test_transient_http_status_retries_once(self, sleep):
+        for status in (408, 429, 500, 502, 503, 504):
+            with self.subTest(status=status):
+                calls = []
+                def read(url, limit, **kwargs):
+                    calls.append(url)
+                    if len(calls) == 1:
+                        raise HTTPError(url, status, "transient", {}, None)
+                    if url.endswith(".m3u8"):
+                        return b"#EXTM3U\n#EXTINF:6,\nfirst.ts\n"
+                    return (b"\x47" + b"\0" * 187) * 2
+                self.assertTrue(update.probe_hls("https://spl.tiyucdn.com/2026/test.m3u8", read)["verified"])
+                self.assertEqual(len(calls), 3)
+
+    @patch("update.time.sleep")
+    def test_denied_missing_or_invalid_tls_never_retry(self, sleep):
+        url = "https://spl.tiyucdn.com/2026/test.m3u8"
+        errors = [HTTPError(url, status, "not accessible", {}, None) for status in (401, 403, 404)]
+        errors.append(URLError(ssl.SSLCertVerificationError("certificate verify failed")))
+        for error in errors:
+            with self.subTest(error=error):
+                calls = []
+                def read(*args, **kwargs):
+                    calls.append(args)
+                    raise error
+                self.assertFalse(update.probe_hls(url, read)["verified"])
+                self.assertEqual(len(calls), 1)
+        sleep.assert_not_called()
+
+    @patch("update.time.sleep")
+    def test_persistent_handshake_timeout_stops_after_two_attempts(self, sleep):
+        calls = []
+        def read(*args, **kwargs):
+            calls.append(args)
+            raise URLError(TimeoutError("SSL handshake operation timed out"))
+        result = update.probe_hls("https://spl.tiyucdn.com/2026/test.m3u8", read)
+        self.assertFalse(result["verified"])
+        self.assertEqual(len(calls), 2)
+        sleep.assert_called_once_with(0.4)
 
     def test_highest_working_quality_fallback_and_all_playlist(self):
         match = update.normalize_schedule(schedule(), 2026)[0]
