@@ -27,6 +27,7 @@ SHANGHAI = ZoneInfo("Asia/Shanghai")
 DATA_HOSTS = frozenset({"stats.qiumibao.com", "matchs.qiumibao.com", "s.qiumibao.com"})
 STREAM_HOSTS = frozenset({"spl.tiyucdn.com", "hslive.tiyucdn.com"})
 LIVE_URL = "https://matchs.qiumibao.com/live/all.htm"
+STANDBY_URL = "https://ricadre.github.io/zhongyi-live/assets/standby.mp4"
 LIVE_STATES = {2, 3, 4, 5, 6, 7}
 STATE_NAMES = {0: "比赛异常", 1: "未开始", 2: "上半场", 3: "中场", 4: "下半场",
                5: "加时", 6: "加时", 7: "点球", 8: "已结束", 9: "推迟"}
@@ -251,8 +252,33 @@ def safe_label(text):
     return re.sub(r'[\r\n\x00-\x1f"]', " ", str(text))
 
 
-def playlist(matches, all_qualities=False):
-    output = ["#EXTM3U", "# Generated from official published match sources; only verified streams are included."]
+def standby_info(matches, now):
+    """Describe a successful empty update using the entire current schedule."""
+    upcoming = sorted((m for m in matches if not m["finished"] and not m.get("is_live")
+                       and m.get("live_status_code") not in {0, 8, 9}
+                       and m["kickoff_timestamp"] >= now.timestamp()),
+                      key=lambda m: (m["kickoff_timestamp"], m["match_id"]))
+    live_count = sum(not m["finished"] and bool(m.get("is_live")) for m in matches)
+    next_match = None
+    if upcoming:
+        match = upcoming[0]
+        next_match = {key: match[key] for key in ("match_id", "kickoff", "home", "away")}
+        kickoff = datetime.fromtimestamp(match["kickoff_timestamp"], SHANGHAI).strftime("%m-%d %H:%M")
+        next_label = f'{kickoff} {match["home"]} vs {match["away"]}'
+    if live_count:
+        label = f"暂无可用直播 · 当前 {live_count} 场比赛进行中"
+        state = "live_unavailable"
+    elif next_match:
+        label = "暂无可用直播 · 下场 " + next_label
+        state = "awaiting_next_match"
+    else:
+        label = "暂无可用直播 · 暂无已确定的后续赛程"
+        state = "no_next_match"
+    return {"label": label, "state": state, "next_match": next_match}
+
+
+def playlist(matches, all_qualities=False, now=None):
+    output = ["#EXTM3U", "# Verified official match streams; a labeled schedule video is included only when no match is playable."]
     for match in matches:
         if match["finished"] or match.get("live_status_code") in {0, 8, 9}:
             continue
@@ -269,12 +295,25 @@ def playlist(matches, all_qualities=False):
             seen.add(url)
             label = safe_label(f'{match["kickoff"][5:16].replace("T", " ")} {match["home"]} vs {match["away"]} · {source["quality_label"]}')
             output.extend([f'#EXTINF:-1 tvg-id="zhongyi-{match["match_id"]}-{source.get("quality_height") or "default"}" group-title="中乙",{label}', url])
+    if len(output) == 2:
+        info = standby_info(matches, now or datetime.now(timezone.utc))
+        output.extend([f'#EXTINF:-1 tvg-id="zhongyi-status" group-title="中乙·赛程提示",{safe_label(info["label"])}', STANDBY_URL])
     return "\n".join(output) + "\n"
 
 
 def render_index(matches, meta):
     esc = html.escape
     rows = []
+    empty_notice = ""
+    if meta.get("standby"):
+        next_match = meta.get("next_match")
+        next_note = ""
+        if next_match:
+            kickoff = datetime.fromisoformat(next_match["kickoff"]).astimezone(SHANGHAI).strftime("%m-%d %H:%M")
+            next_note = f'下场比赛：{esc(kickoff)}（北京时间）{esc(next_match["home"])} vs {esc(next_match["away"])}。'
+        empty_notice = (f'<p role="status"><strong>{esc(meta["standby_label"])}</strong><br>'
+                        f'{next_note}当前订阅保留一条“中乙·赛程提示”，播放静态提示视频。'
+                        '比赛直播通过验证后，订阅会自动替换为真实比赛；请在播放器中刷新订阅。</p>')
     ordered = [m for m in matches if not m["finished"]] + list(reversed([m for m in matches if m["finished"]]))
     labels = {"playable": "已验证可播放", "not_checked": "待临近比赛检查", "no_official_source": "官方暂未公布直播源",
               "not_playable_yet": "直播源已公布，尚未通过播放检查", "detail_error": "详情获取失败",
@@ -290,6 +329,7 @@ def render_index(matches, meta):
 <title>中乙直播订阅与赛程</title><style>body{{font:16px/1.7 system-ui,sans-serif;background:#f5f7fa;color:#172334;margin:0}}main{{max-width:1100px;margin:auto;padding:40px 22px}}h1{{font-size:32px;margin-bottom:4px}}p{{color:#526176}}.actions{{display:flex;gap:12px;flex-wrap:wrap;margin:25px 0}}.button{{background:#125ecf;color:white;border:0;border-radius:8px;padding:11px 16px;text-decoration:none;cursor:pointer;font:inherit}}.secondary{{background:#e1eaf7;color:#174577}}.table{{overflow:auto;background:white;border-radius:12px}}table{{border-collapse:collapse;width:100%;white-space:nowrap}}td,th{{padding:12px 15px;text-align:left;border-bottom:1px solid #edf0f4}}a{{color:#125ecf}}small{{color:#657184}}#copied{{min-height:26px}}</style></head><body><main>
 <h1>中乙直播订阅</h1><p>{meta["year"]} 赛季 · 已验证可播放 {meta["playable_matches"]} 场 · 全赛季 {len(matches)} 场</p>
 <p>默认订阅每场选择当前验证通过的最高官方画质。画质名称由官方标注；检查仅确认播放流可读取。未开播、尚未公布或验证失败的源不会进入订阅。</p>
+{empty_notice}
 <div class="actions"><button class="button" onclick="copyUrl('zhongyi.m3u')">复制订阅地址</button><a class="button secondary" href="zhongyi.m3u">下载默认 M3U</a><button class="button secondary" onclick="copyUrl('zhongyi-all.m3u')">复制全部画质订阅</button></div><div id="copied" role="status"></div>
 <small>最近成功更新：{esc(meta["updated_shanghai"])}（北京时间）。订阅文件随任务更新，播放器需刷新订阅。<a href="status.json">运行状态</a> · <a href="schedule.json">完整赛程 JSON</a></small>
 <h2>全赛季赛程</h2><div class="table"><table><thead><tr><th>北京时间</th><th>轮次</th><th>对阵</th><th>比赛状态</th><th>已验证画质 / 直播源状态</th></tr></thead><tbody>{''.join(rows)}</tbody></table></div>
@@ -319,10 +359,19 @@ def build(year, now, get_json=fetch_json, probe=probe_hls, days=7):
     for m in selected:
         if m.get("source_errors"):
             warnings.append({"match_id": m["match_id"], "errors": m["source_errors"]})
+    default_playlist = playlist(matches, now=now)
+    all_playlist = playlist(matches, True, now=now)
+    standby = not playable
+    standby_details = standby_info(matches, now)
     meta = {"year": year, "updated_utc": now.astimezone(timezone.utc).isoformat(),
             "updated_shanghai": now.astimezone(SHANGHAI).isoformat(), "lookahead_days": days,
             "total_matches": len(matches), "checked_matches": len(selected),
             "playable_matches": len(playable), "live_matches": len(in_progress),
+            "playlist_entries": default_playlist.count("#EXTINF:"),
+            "all_playlist_entries": all_playlist.count("#EXTINF:"),
+            "standby": standby, "standby_label": standby_details["label"] if standby else None,
+            "standby_state": standby_details["state"] if standby else None,
+            "next_match": standby_details["next_match"],
             "quality_labels": "official_advertised_not_measured", "source": schedule_url(year)}
     status = {"ok": True, **meta, "warnings": warnings,
               "matches": [{"match_id": m["match_id"], "match_status": m["match_status"],
@@ -330,7 +379,7 @@ def build(year, now, get_json=fetch_json, probe=probe_hls, days=7):
                            "errors": m.get("source_errors", [])} for m in selected]}
     return {"schedule.json": json.dumps({"meta": meta, "matches": matches}, ensure_ascii=False, indent=2) + "\n",
             "status.json": json.dumps(status, ensure_ascii=False, indent=2) + "\n",
-            "zhongyi.m3u": playlist(matches), "zhongyi-all.m3u": playlist(matches, True),
+            "zhongyi.m3u": default_playlist, "zhongyi-all.m3u": all_playlist,
             "index.html": render_index(matches, meta)}
 
 
@@ -342,12 +391,26 @@ def main():
     args = parser.parse_args()
     try:
         files = build(args.year, datetime.now(timezone.utc), days=args.days)
+        # Read the real bundled video before staging any output: a missing
+        # asset must not replace a previously working subscription.
+        standby_asset = (Path(__file__).resolve().parent / "assets" / "standby.mp4").read_bytes()
+        if not standby_asset:
+            raise UpdateError("bundled standby.mp4 is empty; preserving publication")
         destination = Path(args.output)
         destination.mkdir(parents=True, exist_ok=True)
+        (destination / "assets").mkdir(exist_ok=True)
+        asset_temporary = destination / "assets" / "standby.mp4.tmp"
+        asset_temporary.write_bytes(standby_asset)
+        staged = []
         for name, content in files.items():
             temporary = destination / (name + ".tmp")
             temporary.write_text(content, encoding="utf-8")
-            temporary.replace(destination / name)
+            staged.append((temporary, destination / name))
+        # Stage all writes before replacing files, and publish the video before
+        # the playlists that reference it.
+        asset_temporary.replace(destination / "assets" / "standby.mp4")
+        for temporary, target in staged:
+            temporary.replace(target)
         meta = json.loads(files["status.json"])
         print(f'Updated: {meta["total_matches"]} scheduled, {meta["checked_matches"]} checked, {meta["playable_matches"]} playable')
         return 0

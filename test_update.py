@@ -1,6 +1,8 @@
 from datetime import datetime, timezone
 import json
+from pathlib import Path
 import ssl
+import tempfile
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError, URLError
@@ -146,8 +148,105 @@ class UpdateTests(unittest.TestCase):
         self.assertIn("高清720P", text)
         self.assertNotIn("超清1080P", text)
         self.assertEqual(text.count("#EXTINF"), 1)
+        self.assertNotIn(update.STANDBY_URL, text)
         match["finished"] = True
-        self.assertEqual(update.playlist([match]).count("#EXTINF"), 0)
+        self.assertEqual(update.playlist([match], now=NOW).count("#EXTINF"), 1)
+        self.assertIn('tvg-id="zhongyi-status"', update.playlist([match], now=NOW))
+        self.assertNotIn("example_30fps.m3u8", update.playlist([match], now=NOW))
+
+    def test_empty_default_and_all_playlists_have_one_accurate_next_match_entry(self):
+        future = schedule(finished=1)
+        future["data"][0]["list"].append({
+            "saishi_id": "2287000", "timestamp": str(int(datetime(2026, 10, 6, 7, tzinfo=timezone.utc).timestamp())),
+            "内页": "zhibo/zuqiu/2026/match2287000vplayer.htm", "主队": "长春喜都", "客队": "广州蒲公英", "is_finish": 0})
+        calls = []
+        def get(url):
+            calls.append(url)
+            if url == update.LIVE_URL:
+                return {"matches": []}
+            if "stats.qiumibao" in url:
+                return future
+            self.fail("distant next match should not require a detail fetch")
+        files = update.build(2026, NOW, get)
+        label = "暂无可用直播 · 下场 10-06 15:00 长春喜都 vs 广州蒲公英"
+        for name in ("zhongyi.m3u", "zhongyi-all.m3u"):
+            with self.subTest(name=name):
+                self.assertEqual(files[name].count("#EXTINF:"), 1)
+                self.assertIn('tvg-id="zhongyi-status" group-title="中乙·赛程提示",' + label, files[name])
+                self.assertEqual(files[name].splitlines()[-1], update.STANDBY_URL)
+        meta = json.loads(files["status.json"])
+        self.assertEqual(meta["playable_matches"], 0)
+        self.assertEqual(meta["playlist_entries"], 1)
+        self.assertEqual(meta["all_playlist_entries"], 1)
+        self.assertTrue(meta["standby"])
+        self.assertEqual(meta["next_match"]["match_id"], "2287000")
+        self.assertEqual(meta["standby_state"], "awaiting_next_match")
+        self.assertIn("10-06 15:00（北京时间）长春喜都 vs 广州蒲公英", files["index.html"])
+        self.assertIn("播放静态提示视频", files["index.html"])
+        self.assertIn('name="robots" content="noindex, nofollow"', files["index.html"])
+
+    def test_empty_status_distinguishes_live_unavailable_and_no_future_schedule(self):
+        match = update.normalize_schedule(schedule(), 2026)[0]
+        match["is_live"] = True
+        text = update.playlist([match], now=NOW)
+        self.assertIn("暂无可用直播 · 当前 1 场比赛进行中", text)
+        self.assertNotIn("下场", text)
+        match["is_live"] = False
+        match["finished"] = True
+        text = update.playlist([match], now=NOW)
+        self.assertIn("暂无已确定的后续赛程", text)
+        self.assertEqual(text.count("#EXTINF:"), 1)
+        match["finished"] = False
+        match["kickoff_timestamp"] = int(NOW.timestamp()) + 3600
+        match["live_status_code"] = 9
+        self.assertIsNone(update.standby_info([match], NOW)["next_match"])
+
+    def test_main_copies_real_asset_each_run_and_keeps_previous_if_asset_missing(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            source = directory / "source"
+            asset = source / "assets" / "standby.mp4"
+            asset.parent.mkdir(parents=True)
+            destination = directory / "site"
+            files = {"zhongyi.m3u": "#EXTM3U\nnew publication\n", "status.json": json.dumps({
+                "total_matches": 360, "checked_matches": 0, "playable_matches": 0})}
+            first_video = b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom"
+            asset.write_bytes(first_video)
+            with patch.object(update, "__file__", str(source / "update.py")), \
+                    patch.object(update, "build", return_value=files), \
+                    patch("update.sys.argv", ["update.py", "--output", str(destination)]), \
+                    patch("builtins.print"):
+                self.assertEqual(update.main(), 0)
+                self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), first_video)
+                asset.write_bytes(first_video + b"updated")
+                self.assertEqual(update.main(), 0)
+                self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), first_video + b"updated")
+                asset.unlink()
+                files["zhongyi.m3u"] = "should not be published"
+                self.assertEqual(update.main(), 1)
+                self.assertEqual((destination / "zhongyi.m3u").read_text(), "#EXTM3U\nnew publication\n")
+                self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), first_video + b"updated")
+
+    def test_main_staging_failure_preserves_previous_playlist_and_video(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            directory = Path(temporary)
+            source = directory / "source"
+            asset = source / "assets" / "standby.mp4"
+            asset.parent.mkdir(parents=True)
+            asset.write_bytes(b"new video")
+            destination = directory / "site"
+            (destination / "assets").mkdir(parents=True)
+            (destination / "assets" / "standby.mp4").write_bytes(b"previous video")
+            (destination / "zhongyi.m3u").write_text("previous playlist")
+            # A directory at a staging filename simulates an output write error.
+            (destination / "index.html.tmp").mkdir()
+            with patch.object(update, "__file__", str(source / "update.py")), \
+                    patch.object(update, "build", return_value={"zhongyi.m3u": "new playlist", "index.html": "new page"}), \
+                    patch("update.sys.argv", ["update.py", "--output", str(destination)]), \
+                    patch("builtins.print"):
+                self.assertEqual(update.main(), 1)
+            self.assertEqual((destination / "zhongyi.m3u").read_text(), "previous playlist")
+            self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), b"previous video")
 
     def test_all_live_sources_failed_aborts_and_preserves_old_publication(self):
         row = [0] * 17
@@ -178,7 +277,15 @@ class UpdateTests(unittest.TestCase):
         self.assertEqual(files["zhongyi.m3u"].count("#EXTINF"), 1)
         self.assertIn("超清1080P", files["zhongyi.m3u"])
         self.assertEqual(files["zhongyi-all.m3u"].count("#EXTINF"), 2)
-        self.assertEqual(json.loads(files["status.json"])["playable_matches"], 1)
+        meta = json.loads(files["status.json"])
+        self.assertEqual(meta["playable_matches"], 1)
+        self.assertEqual(meta["playlist_entries"], 1)
+        self.assertEqual(meta["all_playlist_entries"], 2)
+        self.assertFalse(meta["standby"])
+        for name in ("zhongyi.m3u", "zhongyi-all.m3u"):
+            self.assertNotIn(update.STANDBY_URL, files[name])
+            self.assertNotIn("zhongyi-status", files[name])
+        self.assertNotIn("播放静态提示视频", files["index.html"])
         self.assertIn("2026-09-18T16:30:00+08:00", files["index.html"])
 
 
