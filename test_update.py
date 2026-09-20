@@ -147,14 +147,16 @@ class UpdateTests(unittest.TestCase):
         text = update.playlist([match])
         self.assertIn("高清720P", text)
         self.assertNotIn("超清1080P", text)
-        self.assertEqual(text.count("#EXTINF"), 1)
+        self.assertEqual(text.count("#EXTINF"), 2)
         self.assertNotIn(update.STANDBY_URL, text)
+        self.assertIn(update.GUIDE_URL, text)
+        self.assertIn(update.GUIDE_URL, update.playlist([match], True))
         match["finished"] = True
-        self.assertEqual(update.playlist([match], now=NOW).count("#EXTINF"), 1)
+        self.assertEqual(update.playlist([match], now=NOW).count("#EXTINF"), 2)
         self.assertIn('tvg-id="zhongyi-status"', update.playlist([match], now=NOW))
         self.assertNotIn("example_30fps.m3u8", update.playlist([match], now=NOW))
 
-    def test_empty_default_and_all_playlists_have_one_accurate_next_match_entry(self):
+    def test_empty_default_and_all_playlists_have_next_match_and_distinct_help(self):
         future = schedule(finished=1)
         future["data"][0]["list"].append({
             "saishi_id": "2287000", "timestamp": str(int(datetime(2026, 10, 6, 7, tzinfo=timezone.utc).timestamp())),
@@ -171,13 +173,17 @@ class UpdateTests(unittest.TestCase):
         label = "暂无可用直播 · 下场 10-06 15:00 长春喜都 vs 广州蒲公英"
         for name in ("zhongyi.m3u", "zhongyi-all.m3u"):
             with self.subTest(name=name):
-                self.assertEqual(files[name].count("#EXTINF:"), 1)
+                self.assertEqual(files[name].count("#EXTINF:"), 2)
                 self.assertIn('tvg-id="zhongyi-status" group-title="中乙·赛程提示",' + label, files[name])
-                self.assertEqual(files[name].splitlines()[-1], update.STANDBY_URL)
+                self.assertIn('tvg-id="zhongyi-help" group-title="中乙·赛程提示",订阅使用提示 · 开播后刷新获取直播', files[name])
+                self.assertEqual([line for line in files[name].splitlines() if not line.startswith("#")],
+                                 [update.STANDBY_URL, update.GUIDE_URL])
         meta = json.loads(files["status.json"])
         self.assertEqual(meta["playable_matches"], 0)
-        self.assertEqual(meta["playlist_entries"], 1)
-        self.assertEqual(meta["all_playlist_entries"], 1)
+        self.assertEqual(meta["playlist_entries"], 2)
+        self.assertEqual(meta["all_playlist_entries"], 2)
+        self.assertEqual(meta["info_entries"], 2)
+        self.assertEqual(meta["all_info_entries"], 2)
         self.assertTrue(meta["standby"])
         self.assertEqual(meta["next_match"]["match_id"], "2287000")
         self.assertEqual(meta["standby_state"], "awaiting_next_match")
@@ -195,13 +201,44 @@ class UpdateTests(unittest.TestCase):
         match["finished"] = True
         text = update.playlist([match], now=NOW)
         self.assertIn("暂无已确定的后续赛程", text)
-        self.assertEqual(text.count("#EXTINF:"), 1)
+        self.assertEqual(text.count("#EXTINF:"), 2)
         match["finished"] = False
         match["kickoff_timestamp"] = int(NOW.timestamp()) + 3600
         match["live_status_code"] = 9
         self.assertIsNone(update.standby_info([match], NOW)["next_match"])
 
-    def test_main_copies_real_asset_each_run_and_keeps_previous_if_asset_missing(self):
+    def test_single_stream_has_help_in_both_lists_and_two_matches_need_none(self):
+        for count in (1, 2):
+            with self.subTest(playable_matches=count):
+                payload = schedule()
+                if count == 2:
+                    second = dict(payload["data"][0]["list"][0])
+                    second.update(saishi_id="2286844", 内页="zhibo/zuqiu/2026/match2286844vplayer.htm", 主队="球队甲", 客队="球队乙")
+                    payload["data"][0]["list"].append(second)
+                def get(url):
+                    if url == update.LIVE_URL:
+                        return {"matches": []}
+                    if "stats.qiumibao" in url:
+                        return payload
+                    text = json.dumps(detail())
+                    if "match2286844" in url:
+                        text = text.replace("2286843", "2286844").replace("example", "second")
+                    return json.loads(text)
+                files = update.build(2026, NOW, get, lambda u: {
+                    "verified": "30fps" in u, "status": "playable" if "30fps" in u else "probe_failed"})
+                meta = json.loads(files["status.json"])
+                self.assertEqual(meta["playable_matches"], count)
+                self.assertFalse(meta["standby"])
+                self.assertEqual(meta["info_entries"], 2 - count)
+                self.assertEqual(meta["all_info_entries"], 2 - count)
+                for name in ("zhongyi.m3u", "zhongyi-all.m3u"):
+                    self.assertEqual(files[name].count("#EXTINF:"), 2)
+                    self.assertNotIn(update.STANDBY_URL, files[name])
+                    self.assertEqual(update.GUIDE_URL in files[name], count == 1)
+                    self.assertEqual(files[name].count('group-title="中乙",'), count)
+                self.assertEqual("当前默认订阅有 1 条比赛直播" in files["index.html"], count == 1)
+
+    def test_main_copies_both_assets_each_run_and_keeps_previous_if_either_missing(self):
         with tempfile.TemporaryDirectory() as temporary:
             directory = Path(temporary)
             source = directory / "source"
@@ -212,20 +249,29 @@ class UpdateTests(unittest.TestCase):
                 "total_matches": 360, "checked_matches": 0, "playable_matches": 0})}
             first_video = b"\x00\x00\x00\x18ftypmp42\x00\x00\x00\x00mp42isom"
             asset.write_bytes(first_video)
+            guide = asset.with_name("guide.mp4")
+            guide.write_bytes(first_video + b"guide")
             with patch.object(update, "__file__", str(source / "update.py")), \
                     patch.object(update, "build", return_value=files), \
                     patch("update.sys.argv", ["update.py", "--output", str(destination)]), \
                     patch("builtins.print"):
                 self.assertEqual(update.main(), 0)
                 self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), first_video)
+                self.assertEqual((destination / "assets" / "guide.mp4").read_bytes(), first_video + b"guide")
                 asset.write_bytes(first_video + b"updated")
+                guide.write_bytes(first_video + b"guide updated")
                 self.assertEqual(update.main(), 0)
                 self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), first_video + b"updated")
-                asset.unlink()
+                self.assertEqual((destination / "assets" / "guide.mp4").read_bytes(), first_video + b"guide updated")
                 files["zhongyi.m3u"] = "should not be published"
-                self.assertEqual(update.main(), 1)
-                self.assertEqual((destination / "zhongyi.m3u").read_text(), "#EXTM3U\nnew publication\n")
-                self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), first_video + b"updated")
+                for missing in (asset, guide):
+                    original = missing.read_bytes()
+                    missing.unlink()
+                    self.assertEqual(update.main(), 1)
+                    self.assertEqual((destination / "zhongyi.m3u").read_text(), "#EXTM3U\nnew publication\n")
+                    self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), first_video + b"updated")
+                    self.assertEqual((destination / "assets" / "guide.mp4").read_bytes(), first_video + b"guide updated")
+                    missing.write_bytes(original)
 
     def test_main_staging_failure_preserves_previous_playlist_and_video(self):
         with tempfile.TemporaryDirectory() as temporary:
@@ -234,9 +280,11 @@ class UpdateTests(unittest.TestCase):
             asset = source / "assets" / "standby.mp4"
             asset.parent.mkdir(parents=True)
             asset.write_bytes(b"new video")
+            asset.with_name("guide.mp4").write_bytes(b"new guide")
             destination = directory / "site"
             (destination / "assets").mkdir(parents=True)
             (destination / "assets" / "standby.mp4").write_bytes(b"previous video")
+            (destination / "assets" / "guide.mp4").write_bytes(b"previous guide")
             (destination / "zhongyi.m3u").write_text("previous playlist")
             # A directory at a staging filename simulates an output write error.
             (destination / "index.html.tmp").mkdir()
@@ -247,6 +295,7 @@ class UpdateTests(unittest.TestCase):
                 self.assertEqual(update.main(), 1)
             self.assertEqual((destination / "zhongyi.m3u").read_text(), "previous playlist")
             self.assertEqual((destination / "assets" / "standby.mp4").read_bytes(), b"previous video")
+            self.assertEqual((destination / "assets" / "guide.mp4").read_bytes(), b"previous guide")
 
     def test_all_live_sources_failed_aborts_and_preserves_old_publication(self):
         row = [0] * 17
@@ -274,18 +323,23 @@ class UpdateTests(unittest.TestCase):
                 return schedule()
             return detail()
         files = update.build(2026, NOW, get, lambda u: {"verified": True, "status": "playable"})
-        self.assertEqual(files["zhongyi.m3u"].count("#EXTINF"), 1)
+        self.assertEqual(files["zhongyi.m3u"].count("#EXTINF"), 2)
         self.assertIn("超清1080P", files["zhongyi.m3u"])
         self.assertEqual(files["zhongyi-all.m3u"].count("#EXTINF"), 2)
         meta = json.loads(files["status.json"])
         self.assertEqual(meta["playable_matches"], 1)
-        self.assertEqual(meta["playlist_entries"], 1)
+        self.assertEqual(meta["playlist_entries"], 2)
         self.assertEqual(meta["all_playlist_entries"], 2)
+        self.assertEqual(meta["info_entries"], 1)
+        self.assertEqual(meta["all_info_entries"], 0)
         self.assertFalse(meta["standby"])
         for name in ("zhongyi.m3u", "zhongyi-all.m3u"):
             self.assertNotIn(update.STANDBY_URL, files[name])
             self.assertNotIn("zhongyi-status", files[name])
         self.assertNotIn("播放静态提示视频", files["index.html"])
+        self.assertIn("当前默认订阅有 1 条比赛直播", files["index.html"])
+        self.assertIn(update.GUIDE_URL, files["zhongyi.m3u"])
+        self.assertNotIn(update.GUIDE_URL, files["zhongyi-all.m3u"])
         self.assertIn("2026-09-18T16:30:00+08:00", files["index.html"])
 
 

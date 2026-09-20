@@ -28,6 +28,7 @@ DATA_HOSTS = frozenset({"stats.qiumibao.com", "matchs.qiumibao.com", "s.qiumibao
 STREAM_HOSTS = frozenset({"spl.tiyucdn.com", "hslive.tiyucdn.com"})
 LIVE_URL = "https://matchs.qiumibao.com/live/all.htm"
 STANDBY_URL = "https://ricadre.github.io/zhongyi-live/assets/standby.mp4"
+GUIDE_URL = "https://ricadre.github.io/zhongyi-live/assets/guide.mp4"
 LIVE_STATES = {2, 3, 4, 5, 6, 7}
 STATE_NAMES = {0: "比赛异常", 1: "未开始", 2: "上半场", 3: "中场", 4: "下半场",
                5: "加时", 6: "加时", 7: "点球", 8: "已结束", 9: "推迟"}
@@ -278,7 +279,7 @@ def standby_info(matches, now):
 
 
 def playlist(matches, all_qualities=False, now=None):
-    output = ["#EXTM3U", "# Verified official match streams; a labeled schedule video is included only when no match is playable."]
+    output = ["#EXTM3U", "# Verified official match streams plus labeled information videos when fewer than two media entries are available."]
     for match in matches:
         if match["finished"] or match.get("live_status_code") in {0, 8, 9}:
             continue
@@ -295,9 +296,15 @@ def playlist(matches, all_qualities=False, now=None):
             seen.add(url)
             label = safe_label(f'{match["kickoff"][5:16].replace("T", " ")} {match["home"]} vs {match["away"]} · {source["quality_label"]}')
             output.extend([f'#EXTINF:-1 tvg-id="zhongyi-{match["match_id"]}-{source.get("quality_height") or "default"}" group-title="中乙",{label}', url])
-    if len(output) == 2:
+    stream_entries = (len(output) - 2) // 2
+    if stream_entries == 0:
         info = standby_info(matches, now or datetime.now(timezone.utc))
         output.extend([f'#EXTINF:-1 tvg-id="zhongyi-status" group-title="中乙·赛程提示",{safe_label(info["label"])}', STANDBY_URL])
+    # APTV classifies a single-entry M3U as one media stream instead of an
+    # updateable subscription. Two distinct, clearly labeled entries avoid
+    # that ambiguity without inventing a live match or duplicating its URL.
+    if stream_entries < 2:
+        output.extend(['#EXTINF:-1 tvg-id="zhongyi-help" group-title="中乙·赛程提示",订阅使用提示 · 开播后刷新获取直播', GUIDE_URL])
     return "\n".join(output) + "\n"
 
 
@@ -312,8 +319,11 @@ def render_index(matches, meta):
             kickoff = datetime.fromisoformat(next_match["kickoff"]).astimezone(SHANGHAI).strftime("%m-%d %H:%M")
             next_note = f'下场比赛：{esc(kickoff)}（北京时间）{esc(next_match["home"])} vs {esc(next_match["away"])}。'
         empty_notice = (f'<p role="status"><strong>{esc(meta["standby_label"])}</strong><br>'
-                        f'{next_note}当前订阅保留一条“中乙·赛程提示”，播放静态提示视频。'
+                        f'{next_note}当前订阅保留“赛程提示”和“订阅使用提示”两条信息频道，播放静态提示视频。'
                         '比赛直播通过验证后，订阅会自动替换为真实比赛；请在播放器中刷新订阅。</p>')
+    elif meta.get("info_entries"):
+        empty_notice = ('<p role="status">当前默认订阅有 1 条比赛直播，并保留一条“订阅使用提示”视频，'
+                        '方便播放器将其识别为可更新的订阅。提示视频不计入可播放比赛数量；请在播放器中刷新订阅获取后续直播。</p>')
     ordered = [m for m in matches if not m["finished"]] + list(reversed([m for m in matches if m["finished"]]))
     labels = {"playable": "已验证可播放", "not_checked": "待临近比赛检查", "no_official_source": "官方暂未公布直播源",
               "not_playable_yet": "直播源已公布，尚未通过播放检查", "detail_error": "详情获取失败",
@@ -369,6 +379,8 @@ def build(year, now, get_json=fetch_json, probe=probe_hls, days=7):
             "playable_matches": len(playable), "live_matches": len(in_progress),
             "playlist_entries": default_playlist.count("#EXTINF:"),
             "all_playlist_entries": all_playlist.count("#EXTINF:"),
+            "info_entries": sum(url in default_playlist.splitlines() for url in (STANDBY_URL, GUIDE_URL)),
+            "all_info_entries": sum(url in all_playlist.splitlines() for url in (STANDBY_URL, GUIDE_URL)),
             "standby": standby, "standby_label": standby_details["label"] if standby else None,
             "standby_state": standby_details["state"] if standby else None,
             "next_match": standby_details["next_match"],
@@ -391,24 +403,27 @@ def main():
     args = parser.parse_args()
     try:
         files = build(args.year, datetime.now(timezone.utc), days=args.days)
-        # Read the real bundled video before staging any output: a missing
+        # Read both real bundled videos before staging any output: a missing
         # asset must not replace a previously working subscription.
-        standby_asset = (Path(__file__).resolve().parent / "assets" / "standby.mp4").read_bytes()
-        if not standby_asset:
-            raise UpdateError("bundled standby.mp4 is empty; preserving publication")
+        assets = {}
+        for name in ("standby.mp4", "guide.mp4"):
+            assets[name] = (Path(__file__).resolve().parent / "assets" / name).read_bytes()
+            if not assets[name]:
+                raise UpdateError(f"bundled {name} is empty; preserving publication")
         destination = Path(args.output)
         destination.mkdir(parents=True, exist_ok=True)
         (destination / "assets").mkdir(exist_ok=True)
-        asset_temporary = destination / "assets" / "standby.mp4.tmp"
-        asset_temporary.write_bytes(standby_asset)
         staged = []
+        for name, content in assets.items():
+            temporary = destination / "assets" / (name + ".tmp")
+            temporary.write_bytes(content)
+            staged.append((temporary, destination / "assets" / name))
         for name, content in files.items():
             temporary = destination / (name + ".tmp")
             temporary.write_text(content, encoding="utf-8")
             staged.append((temporary, destination / name))
-        # Stage all writes before replacing files, and publish the video before
+        # Stage all writes before replacing files, and publish the videos before
         # the playlists that reference it.
-        asset_temporary.replace(destination / "assets" / "standby.mp4")
         for temporary, target in staged:
             temporary.replace(target)
         meta = json.loads(files["status.json"])
