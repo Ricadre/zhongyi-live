@@ -1,11 +1,11 @@
 {
   "meta": {
     "year": 2026,
-    "updated_utc": "2026-09-28T16:58:48.290125+00:00",
-    "updated_shanghai": "2026-09-29T00:58:48.290125+08:00",
+    "updated_utc": "2026-09-29T20:01:19.182697+00:00",
+    "updated_shanghai": "2026-09-30T04:01:19.182697+08:00",
     "lookahead_days": 7,
     "total_matches": 360,
-    "checked_matches": 0,
+    "checked_matches": 9,
     "playable_matches": 0,
     "live_matches": 0,
     "playlist_entries": 2,
@@ -5223,7 +5223,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -5241,7 +5241,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -5259,7 +5259,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -5277,7 +5277,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -5295,7 +5295,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -5313,7 +5313,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -5331,7 +5331,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -5349,7 +5349,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -5367,7 +5367,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
