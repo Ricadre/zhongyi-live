@@ -1,11 +1,11 @@
 {
   "ok": true,
   "year": 2026,
-  "updated_utc": "2026-10-03T16:40:33.707217+00:00",
-  "updated_shanghai": "2026-10-04T00:40:33.707217+08:00",
+  "updated_utc": "2026-10-04T18:11:54.708779+00:00",
+  "updated_shanghai": "2026-10-05T02:11:54.708779+08:00",
   "lookahead_days": 7,
   "total_matches": 360,
-  "checked_matches": 12,
+  "checked_matches": 18,
   "playable_matches": 0,
   "live_matches": 0,
   "playlist_entries": 2,
@@ -527,6 +527,48 @@
           "error": "HTTP Error 404: Not Found"
         }
       ],
+      "errors": []
+    },
+    {
+      "match_id": "2286850",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286820",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286821",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286851",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286904",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286905",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
       "errors": []
     }
   ]
