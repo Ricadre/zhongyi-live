@@ -1,11 +1,11 @@
 {
   "ok": true,
   "year": 2026,
-  "updated_utc": "2026-10-04T18:11:54.708779+00:00",
-  "updated_shanghai": "2026-10-05T02:11:54.708779+08:00",
+  "updated_utc": "2026-10-06T01:31:16.758978+00:00",
+  "updated_shanghai": "2026-10-06T09:31:16.758978+08:00",
   "lookahead_days": 7,
   "total_matches": 360,
-  "checked_matches": 18,
+  "checked_matches": 23,
   "playable_matches": 0,
   "live_matches": 0,
   "playlist_entries": 2,
@@ -566,6 +566,41 @@
     },
     {
       "match_id": "2286905",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286822",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286823",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286852",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286853",
+      "match_status": "未开始",
+      "source_status": "no_official_source",
+      "sources": [],
+      "errors": []
+    },
+    {
+      "match_id": "2286907",
       "match_status": "未开始",
       "source_status": "no_official_source",
       "sources": [],
