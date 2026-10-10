@@ -1,11 +1,11 @@
 {
   "meta": {
     "year": 2026,
-    "updated_utc": "2026-10-09T19:02:02.832097+00:00",
-    "updated_shanghai": "2026-10-10T03:02:02.832097+08:00",
+    "updated_utc": "2026-10-10T22:39:15.973577+00:00",
+    "updated_shanghai": "2026-10-11T06:39:15.973577+08:00",
     "lookahead_days": 7,
     "total_matches": 360,
-    "checked_matches": 12,
+    "checked_matches": 20,
     "playable_matches": 0,
     "live_matches": 0,
     "playlist_entries": 2,
@@ -5475,6 +5475,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5528,6 +5529,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5581,6 +5583,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5634,6 +5637,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5687,6 +5691,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5740,6 +5745,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -6075,7 +6081,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -6093,7 +6099,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -6111,7 +6117,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -6129,7 +6135,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -6147,7 +6153,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -6165,7 +6171,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -6183,7 +6189,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
@@ -6201,7 +6207,7 @@
       "finished": false,
       "score": "-",
       "sources": [],
-      "source_status": "not_checked",
+      "source_status": "no_official_source",
       "match_status": "未开始",
       "is_live": false
     },
