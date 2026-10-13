@@ -1,11 +1,11 @@
 {
   "ok": true,
   "year": 2026,
-  "updated_utc": "2026-10-12T17:45:36.709481+00:00",
-  "updated_shanghai": "2026-10-13T01:45:36.709481+08:00",
+  "updated_utc": "2026-10-13T18:31:48.228323+00:00",
+  "updated_shanghai": "2026-10-14T02:31:48.228323+08:00",
   "lookahead_days": 7,
   "total_matches": 360,
-  "checked_matches": 13,
+  "checked_matches": 12,
   "playable_matches": 0,
   "live_matches": 0,
   "playlist_entries": 2,
@@ -13,60 +13,18 @@
   "info_entries": 2,
   "all_info_entries": 2,
   "standby": true,
-  "standby_label": "暂无可用直播 · 下场 10-13 19:35 成都蓉城B队 vs 青岛红狮",
+  "standby_label": "暂无可用直播 · 下场 10-17 15:00 山西崇德荣海 vs 深圳2028",
   "standby_state": "awaiting_next_match",
   "next_match": {
-    "match_id": "2286906",
-    "kickoff": "2026-10-13T19:35:00+08:00",
-    "home": "成都蓉城B队",
-    "away": "青岛红狮"
+    "match_id": "2286824",
+    "kickoff": "2026-10-17T15:00:00+08:00",
+    "home": "山西崇德荣海",
+    "away": "深圳2028"
   },
   "quality_labels": "official_advertised_not_measured",
   "source": "https://stats.qiumibao.com/shuju/public/index.php?_url=%2Fdata%2Findex&year=2026&league=%E4%B8%AD%E4%B9%99&league_id=355&type=%E8%B5%9B%E7%A8%8B&tab=%E8%B5%9B%E7%A8%8B",
   "warnings": [],
   "matches": [
-    {
-      "match_id": "2286906",
-      "match_status": "未开始",
-      "source_status": "not_playable_yet",
-      "sources": [
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_17269",
-          "quality_label": "超清1080P",
-          "short_label": "超清",
-          "quality_height": 1080,
-          "source_url": "http://freevip.client.com/2286906/rtmp%3A%2F%2Fhslive.tiyucdn.com%2Fzbbleft%2F1008pitq82094",
-          "rtmp_url": "rtmp://hslive.tiyucdn.com/zbbleft/1008pitq82094",
-          "candidate_url": "https://hslive.tiyucdn.com/zbbleft/1008pitq82094.m3u8",
-          "status": "probe_failed",
-          "verified": false,
-          "schema_path": "video_live.section_info[0].data[0].url_list[1]",
-          "start_time": "1791890700",
-          "end_time": "1791902100",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286906_1008pitq82094.htm",
-          "error": "HTTP Error 404: Not Found"
-        },
-        {
-          "provider": "直播吧视频直播",
-          "channel_id": "kball_17269",
-          "quality_label": "高清720P",
-          "short_label": "高清",
-          "quality_height": 720,
-          "source_url": "http://freevip.client.com/2286906/rtmp%3A%2F%2Fhslive.tiyucdn.com%2Fzbbleft%2F1008pitq82094_30fps",
-          "rtmp_url": "rtmp://hslive.tiyucdn.com/zbbleft/1008pitq82094_30fps",
-          "candidate_url": "https://hslive.tiyucdn.com/zbbleft/1008pitq82094_30fps.m3u8",
-          "status": "probe_failed",
-          "verified": false,
-          "schema_path": "video_live.section_info[0].data[0].url_list[0]",
-          "start_time": "1791890700",
-          "end_time": "1791902100",
-          "live_status_url": "https://bifen.qiumibao.com/json/live_status/2286906_1008pitq82094.htm",
-          "error": "HTTP Error 404: Not Found"
-        }
-      ],
-      "errors": []
-    },
     {
       "match_id": "2286824",
       "match_status": "未开始",
