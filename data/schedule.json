@@ -1,8 +1,8 @@
 {
   "meta": {
     "year": 2026,
-    "updated_utc": "2026-10-13T18:31:48.228323+00:00",
-    "updated_shanghai": "2026-10-14T02:31:48.228323+08:00",
+    "updated_utc": "2026-10-14T17:31:54.316771+00:00",
+    "updated_shanghai": "2026-10-15T01:31:54.316771+08:00",
     "lookahead_days": 7,
     "total_matches": 360,
     "checked_matches": 12,
@@ -5638,7 +5638,6 @@
       "score": "1-1",
       "sources": [],
       "source_status": "not_checked",
-      "live_status_code": 8,
       "match_status": "已结束",
       "is_live": false
     },
