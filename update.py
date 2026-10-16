@@ -27,8 +27,8 @@ SHANGHAI = ZoneInfo("Asia/Shanghai")
 DATA_HOSTS = frozenset({"stats.qiumibao.com", "matchs.qiumibao.com", "s.qiumibao.com"})
 STREAM_HOSTS = frozenset({"spl.tiyucdn.com", "hslive.tiyucdn.com"})
 LIVE_URL = "https://matchs.qiumibao.com/live/all.htm"
-STANDBY_URL = "https://ricadre.github.io/zhongyi-live/assets/standby.mp4"
-GUIDE_URL = "https://ricadre.github.io/zhongyi-live/assets/guide.mp4"
+STANDBY_URL = "https://nuvora-f44c84.github.io/zhongyi-live/assets/standby.mp4"
+GUIDE_URL = "https://nuvora-f44c84.github.io/zhongyi-live/assets/guide.mp4"
 LIVE_STATES = {2, 3, 4, 5, 6, 7}
 STATE_NAMES = {0: "比赛异常", 1: "未开始", 2: "上半场", 3: "中场", 4: "下半场",
                5: "加时", 6: "加时", 7: "点球", 8: "已结束", 9: "推迟"}

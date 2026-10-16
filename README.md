@@ -6,9 +6,9 @@
 
 在 APTV 添加远程 M3U 订阅，并开启客户端自动刷新：
 
-- 最佳画质：`https://ricadre.github.io/zhongyi-live/zhongyi.m3u`
-- 所有可用画质：`https://ricadre.github.io/zhongyi-live/zhongyi-all.m3u`
-- 赛程及状态：<https://ricadre.github.io/zhongyi-live/>
+- 最佳画质：`https://nuvora-f44c84.github.io/zhongyi-live/zhongyi.m3u`
+- 所有可用画质：`https://nuvora-f44c84.github.io/zhongyi-live/zhongyi-all.m3u`
+- 赛程及状态：<https://nuvora-f44c84.github.io/zhongyi-live/>
 
 ## 自动更新
 
@@ -38,6 +38,6 @@ python update.py --output site
 
 ## 搜索引擎
 
-首页带有 `noindex, nofollow`，请求搜索引擎不要收录或跟随链接。域名根目录的 `https://ricadre.github.io/robots.txt` 对本项目的 M3U、JSON 文件禁止抓取；该规则由单独的 `Ricadre.github.io` 用户站点提供，放在本项目子目录下不会生效。首页保留可抓取，以便搜索引擎读取 noindex。
+首页带有 `noindex, nofollow`，请求搜索引擎不要收录或跟随链接。域名根目录的 `https://nuvora-f44c84.github.io/robots.txt` 对本项目的 M3U、JSON 文件禁止抓取；该规则由单独的 `nuvora-f44c84.github.io` 用户站点提供，放在本项目子目录下不会生效。首页保留可抓取，以便搜索引擎读取 noindex。
 
 这些是供守规则的爬虫遵循的指令，不是身份验证。网站、订阅地址与本公开仓库仍可直接访问；已有搜索结果消失也需要搜索引擎重新处理。
