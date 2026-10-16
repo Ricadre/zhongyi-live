@@ -1,8 +1,8 @@
 {
   "meta": {
     "year": 2026,
-    "updated_utc": "2026-10-15T17:23:39.959514+00:00",
-    "updated_shanghai": "2026-10-16T01:23:39.959514+08:00",
+    "updated_utc": "2026-10-16T18:57:05.299092+00:00",
+    "updated_shanghai": "2026-10-17T02:57:05.299092+08:00",
     "lookahead_days": 7,
     "total_matches": 360,
     "checked_matches": 12,
@@ -5691,6 +5691,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5761,6 +5762,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5814,6 +5816,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5867,6 +5870,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5920,6 +5924,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -5973,6 +5978,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -6026,6 +6032,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
@@ -6079,6 +6086,7 @@
         }
       ],
       "source_status": "not_playable_yet",
+      "live_status_code": 1,
       "match_status": "未开始",
       "is_live": false
     },
